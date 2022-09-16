@@ -44,6 +44,8 @@ export default new Event({
   for (const subscription of global.subscriptions.filter(sub => sub !== message.channel.id)) {
     const channel = message.client.channels.resolve(subscription);
     if (!channel) continue;
+    if (channel.guild.members.cache.get(message.client.user.id)?.permissions.has("BAN_MEMBERS")
+         && channel.guild.bans.cache.has(message.author.id)) continue;
     channel.global ||= new GlobalManager(channel);
     channel.global.push(action);
   }
