@@ -14,6 +14,10 @@ Parent.subcommand({
     channel_types: [0],
     name: 'logchannel',
     description: 'the channel you want this global channel to log to',
+  }, {
+    type: 5,
+    name: 'usernames',
+    description: 'set to true to use usernames instead of nicknames (default false)'
   }],
 }, async interaction => {
   const reply = content => interaction.reply({ content, ephemeral: true });
@@ -23,7 +27,11 @@ Parent.subcommand({
 
   const name = interaction.options.getString('name');
   if (await interaction.client.db.Global.exists({ name })) return reply('A global channel with that name already exists.');
-  await interaction.client.db.Global.create({ name, logs: interaction.options.getChannel('logchannel')?.id });
+  await interaction.client.db.Global.create({
+    name,
+    logs: interaction.options.getChannel('logchannel')?.id,
+    usernames: !!interaction.options.getBoolean('usernames'),
+  });
   await reply(`global channel ${name} created!`);
 
   util.log(util.fakeMessage(interaction, {

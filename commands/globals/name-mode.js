@@ -3,20 +3,19 @@ import * as autocomplete from '../../lib/autocomplete.js';
 import * as util from '../../lib/util.js';
 
 Parent.subcommand({
-  name: 'logchannel',
-  description: 'changes the logs channel of a global channel',
+  name: 'name-mode',
+  description: 'changes the name mode of a global channel',
   options: [{
     type: 3,
     name: 'name',
-    description: 'the name of the global channel you want to change the log channel of',
+    description: 'the name of the global channel you want to change the name mode of',
     required: true,
     autocomplete: true,
     onAutocomplete: autocomplete.global,
   }, {
-    type: 7,
-    channel_types: [0],
-    name: 'logchannel',
-    description: 'the channel you want this global channel to log to (leave blank to remove)',
+    type: 5,
+    name: 'usernames',
+    description: 'true to use usernames; false to use display names (nicknames)',
   }],
 }, async interaction => {
   const reply = content => interaction.reply({ content, ephemeral: true });
@@ -27,19 +26,12 @@ Parent.subcommand({
   const global = await interaction.client.db.Global.findOne({ name: interaction.options.getString('name') });
   if (!global) return reply('Sorry, that is not a global channel');
 
-  const channel = interaction.options.getChannel('logchannel');
-
-  if (channel) {
-    await global.updateOne({ logs: channel.id });
-    await reply(`logs channel for ${global.name} changed to ${channel}`);
-  } else {
-    await global.updateOne({ logs: null });
-    await reply(`logs channel for ${global.name} removed`)
-  }
+  const usernames = interaction.options.getBoolean('usernames');
+  
+  await global.updateOne({ usernames });
+  await reply(`name mode for ${global.name} changed to ${usernames ? 'usernames' : 'display names'}`);
 
   util.log(util.fakeMessage(interaction, {
-    content: `${interaction.user} ${
-      channel ? "changed the log channel to" : "removed the log channel for"
-    } ${channel}`,
+    content: `${interaction.user} changed ${channel} to use ${usernames ? 'usernames' : 'display names'}`,
   }), util.tags.edit, global).catch(() => {});
 });
